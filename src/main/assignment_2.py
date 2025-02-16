@@ -37,39 +37,74 @@ def newton_forward_interpolation(x_vals, y_vals, degree, x_target=None):
     
     return coefficients, table, None
 
+# Perform Hermite polynomial interpolation.
 def hermite_interpolation(x_vals, f_vals, fprimes):
     n = len(x_vals)
     m = 2*n
+
+    # z holds the repeated x-values, T holds the divided differences
     z = np.zeros(m)
     T = np.zeros((m, m))
     
-    # Fill z-values and 0th column
+    # Fill repeated x-values and f(x) in the 0th column of T
     for i in range(n):
         z[2*i]   = x_vals[i]
         z[2*i+1] = x_vals[i]
         T[2*i,   0] = f_vals[i]
         T[2*i+1, 0] = f_vals[i]
     
-    # First-difference column: row(2i) = bridging diff (or 0 for i=0), row(2i+1) = derivative
+    # Fill the first-difference column (index 1 in T)
     for i in range(n):
-        T[2*i,   1] = 0 if i == 0 else (f_vals[i] - f_vals[i-1])/(x_vals[i] - x_vals[i-1])
+        T[2*i,   1] = 0 if i == 0 else (f_vals[i] - f_vals[i-1]) / (x_vals[i] - x_vals[i-1])
         T[2*i+1, 1] = fprimes[i]
     
-    # Higher order columns
+    # Fill higher-order columns j=2..(m-1)
     for j in range(2, m):
         for i in range(m - j):
-            T[i, j] = (T[i+1, j-1] - T[i, j-1]) / (z[i+j] - z[i])
+            numerator = T[i+1, j-1] - T[i, j-1]
+            denominator = z[i+j] - z[i]
+            T[i, j] = numerator / denominator if abs(denominator) > 1e-15 else 0.0
     
-    # Build final m×m table: col0 = x, col1 = f(x), ... T[..,1..4]
+    # Build the final matrix
     final = np.zeros((m, m))
     for i in range(m):
-        final[i, 0] = z[i]
-        final[i, 1] = T[i, 0]
-        # Copy only up to j = m-2 (which is 4 if m=6), so we fill final columns 2..5
-        for j in range(1, m-1):  
-            final[i, j+1] = T[i, j]
+        final[i, 0] = z[i]        # x
+        final[i, 1] = T[i, 0]     # f(x)
+        # jth column of T is the jth column of final
+        for j in range(1, m-1):
+            if j < m:
+                final[i, j+1] = T[i, j]
     
     return final
+
+# Implement cubic spline interpolation.
+def cubic_spline_system(x, f):
+    n = len(x)
+    A = np.zeros((n, n))
+    b = np.zeros(n)
+    
+    # Natural boundary conditions
+    A[0, 0] = 1.0
+    A[-1, -1] = 1.0
+    
+    h = np.diff(x)
+    # Slope differences
+    sd1 = (f[2] - f[1]) / h[1] - (f[1] - f[0]) / h[0]
+    sd2 = (f[3] - f[2]) / h[2] - (f[2] - f[1]) / h[1]
+    
+    # Interior row for i=1
+    A[1, 0] = h[0]
+    A[1, 1] = 2*(h[0] + h[1])
+    A[1, 2] = h[1]
+    b[1] = 3*sd1  # factor of three
+    
+    # Interior row
+    A[2, 1] = h[1]
+    A[2, 2] = 2*(h[1] + h[2])
+    A[2, 3] = h[2]
+    b[2] = 3*sd2
+    
+    return A, b
 
 
 
@@ -99,6 +134,16 @@ if __name__ == "__main__":
     f = [1.675, 1.436, 1.318]
     fp = [-1.195, -1.188, -1.182]
     table = hermite_interpolation(x, f, fp)
+
     print("\nHermite polynomial Interpolation matrix:")
     for row in table:
-        print([f"{val:.9e}" for val in row])
+        print("[ " + " ".join(f"{val:.9e}" for val in row) + " ]")
+
+    # Cubic spline interpolation example
+    x_data = [2, 5, 8, 10]
+    f_data = [3, 5, 7, 9]
+    
+    A, b = cubic_spline_system(x_data, f_data)
+    x_sol = np.linalg.solve(A, b)
+    
+    print(f"\nCubic Spline Matrix:\n{A}\n{b}\n{x_sol}")
