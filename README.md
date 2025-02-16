@@ -40,3 +40,7 @@ python3 src/main/assignment_2.py
 ```
 python3 -m unittest src.test.test_assignment_2
 ```
+
+Final Output:
+
+!["final output"](https://i.ibb.co/4nrs0pwr/Screenshot-2025-02-16-at-4-34-34-PM.png)
