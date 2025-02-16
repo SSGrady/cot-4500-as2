@@ -6,8 +6,10 @@
 
 In this assignment, I implement numerical calculus methods for:
 
-- Neville's method for polynomial interpolation
-
+- **Neville's method** for polynomial interpolation
+- **Newton's forward method** , which builds a divided difference table and computes polynomial coefficients
+- **Hermite polynomial interpolation**, using the divided difference method
+- **Cubic spline interpolation**, where the system is built to find matrix A, vector b, and vector x.
 
 
 ## Requirements
@@ -15,10 +17,15 @@ In this assignment, I implement numerical calculus methods for:
 - Python 3.x
 - NumPy
 
+## Files
+
+- `src/main/assignment_2.py`: Main script for the assignment.
+
+- `src/test/test_assignment_2.py`: Test script for all unit tests for the assignment.
 
 ## Run Instructions
 
-1. Clone the repository using SSH and cd into root:
+1. Clone the repository using SSH and change to the root directory
 ```
 git clone git@github.com:SSGrady/cot-4500-as2.git
 cd cot-4500-as2
@@ -29,9 +36,7 @@ cd cot-4500-as2
 python src/main/assignment_2.py
 ```
 
-3. Run the test script:
+3. Run the test suite:
 ```
 python -m unittest src.test.test_assignment_2
 ```
-
-These test verify the correctness of the Neville's method implementation.
