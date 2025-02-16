@@ -1,7 +1,9 @@
+# src/test/test_assignment_2.py
 import unittest
-from src.main.assignment_2 import neville_interpolation, newton_forward_interpolation
+import numpy as np
+from src.main.assignment_2 import neville_interpolation, newton_forward_interpolation, hermite_interpolation
 
-class TestNevilleInterpolation(unittest.TestCase):
+class TestAllInterpolationMethods(unittest.TestCase):
     def test_neville_interpolation(self):
         x = [3.6, 3.8, 3.9]
         y = [1.675, 1.436, 1.318]
@@ -22,6 +24,26 @@ class TestNevilleInterpolation(unittest.TestCase):
         for i in range(1, len(expected_coeffs) + 1):
             self.assertAlmostEqual(coefficients[i], expected_coeffs[i - 1], places=5)
         self.assertAlmostEqual(approx_f73, expected_f73, places=5)
+    
+    def test_hermite_interpolation(self):
+        # Inputs for Hermite interpolation
+        x = [3.6, 3.8, 3.9]
+        f = [1.675, 1.436, 1.318]
+        fp = [-1.195, -1.188, -1.182]
+        # Expected 6×6 matrix
+        expected = np.array([
+            [3.6,  1.675,  0.0,      -5.975,    29.875,   -98.80555556],
+            [3.6,  1.675, -1.195,     0.0,       0.23333333, -0.44444444],
+            [3.8,  1.436, -1.195,     0.07,      0.1,      0.0],
+            [3.8,  1.436, -1.188,     0.08,      0.0,      0.0],
+            [3.9,  1.318, -1.18,      0.0,       0.0,      0.0],
+            [3.9,  1.318, -1.182,     0.0,       0.0,      0.0]
+        ])
+        result = hermite_interpolation(x, f, fp)
+        # Compare each element to within 5 decimal places
+        for i in range(expected.shape[0]):
+            for j in range(expected.shape[1]):
+                self.assertAlmostEqual(result[i, j], expected[i, j], places=5)
 
 if __name__ == "__main__":
     unittest.main()
